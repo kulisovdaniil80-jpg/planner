@@ -1,0 +1,1219 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Планер тренировок</title><meta name="theme-color" content="#D63A28"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Oswald:wght@500;600&display=swap">
+<style>
+/* Раскладка: слева выбор части тела, в центре упражнения, справа собираемая тренировка.
+   На узком экране тренировка уходит в нижнюю шторку. */
+:root {
+  --bg: #ECEEEC; --surface: #FFFFFF; --surface2: #F4F5F4; --figbg: #F3F5F4;
+  --ink: #171A1C; --muted: #5A6368; --line: #D6DAD8; --line2: #C3CAC7;
+  --accent: #D63A28; --accent-ink: #FFFFFF; --accent-soft: #F7D8D3;
+  --zone: #D3D9D6; --ok: #2D7A4D;
+  --fig: #1B1E21; --far: #9AA3A8; --scene: #BAC2C5; --eq: #2A2F33;
+  --font-d: 'Oswald', 'Arial Narrow', 'Roboto Condensed', Impact, sans-serif;
+  --font-b: 'Golos Text', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-m: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101213; --surface: #181B1D; --surface2: #1F2326; --figbg: #14171A;
+    --ink: #ECEFEF; --muted: #98A2A7; --line: #2B3033; --line2: #3B4246;
+    --accent: #FF5B44; --accent-ink: #1B0A07; --accent-soft: #4B2822;
+    --zone: #2B3134; --ok: #5CC68A;
+    --fig: #E9ECEC; --far: #66717A; --scene: #384146; --eq: #C8CED1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101213; --surface: #181B1D; --surface2: #1F2326; --figbg: #14171A;
+  --ink: #ECEFEF; --muted: #98A2A7; --line: #2B3033; --line2: #3B4246;
+  --accent: #FF5B44; --accent-ink: #1B0A07; --accent-soft: #4B2822;
+  --zone: #2B3134; --ok: #5CC68A;
+  --fig: #E9ECEC; --far: #66717A; --scene: #384146; --eq: #C8CED1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font-b); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- шапка ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1500px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; min-height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { flex: none; width: 30px; height: 30px; }
+.brand h1 { margin: 0; font: 600 22px/1 var(--font-d); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.sync { margin-left: auto; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; text-align: right; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--line2); flex: none; }
+.sync[data-s="cloud"] i { background: var(--ok); }
+.sync[data-s="local"] i { background: var(--muted); }
+
+/* ---------- каркас ---------- */
+.layout { max-width: 1500px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 96px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1100px) {
+  .layout { grid-template-columns: 236px minmax(0, 1fr) 372px; padding-block: 20px 40px; gap: 22px; align-items: start; }
+  .side, .plan { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
+  .plan { max-height: calc(100vh - 92px); overflow: auto; }
+}
+
+/* ---------- выбор части тела ---------- */
+.side { min-width: 0; }
+.side h2, .lib-head h2, .plan h2 { margin: 0; font: 600 13px/1 var(--font-d); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.groups { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-top: 10px; scrollbar-width: thin; }
+.gbtn { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; white-space: nowrap; font-weight: 500; }
+.gbtn small { font: 500 12px var(--font-m); color: var(--muted); }
+.gbtn:hover { border-color: var(--line2); }
+.gbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.gbtn[aria-pressed="true"] small { color: inherit; opacity: .85; }
+@media (min-width: 1100px) {
+  .groups { flex-direction: column; gap: 4px; overflow: visible; }
+  .gbtn { border-radius: 8px; width: 100%; padding: 9px 12px; }
+}
+.map-toggle { margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px dashed var(--line2); background: transparent; color: var(--muted); }
+.map { display: none; margin-top: 12px; padding: 12px 8px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.side.map-on .map { display: block; }
+@media (min-width: 1100px) { .map-toggle { display: none; } .map { display: block; order: 1; margin: 10px 0 14px; } .groups { order: 2; margin-top: 0; } .side { display: flex; flex-direction: column; } }
+.map-in { display: flex; justify-content: center; gap: 6px; }
+.map figure { margin: 0; flex: 1 1 0; min-width: 0; max-width: 140px; text-align: center; }
+.map svg { width: 100%; height: auto; display: block; max-height: 280px; }
+.map figcaption { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+.zone { cursor: pointer; outline: none; }
+.zone .z { fill: var(--zone); stroke: var(--surface); stroke-width: 1.4; transition: fill .12s; }
+.zone:hover .z, .zone:focus-visible .z { fill: var(--accent-soft); }
+.zone.on .z { fill: var(--accent); }
+.bm-base { fill: var(--zone); opacity: .55; }
+.map-hint { margin: 6px 4px 0; font-size: 12px; color: var(--muted); text-align: center; }
+
+/* ---------- библиотека ---------- */
+.lib { min-width: 0; }
+.lib-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.lib-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.lib-title h2 { font: 600 34px/1.05 var(--font-d); letter-spacing: .02em; text-transform: uppercase; color: var(--ink); text-wrap: balance; }
+.lib-title span { font: 500 13px var(--font-m); color: var(--muted); }
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.search { flex: 1 1 220px; min-width: 0; max-width: 360px; height: 40px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 8px; background: var(--surface); }
+.search::placeholder { color: var(--muted); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { height: 34px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line2); background: transparent; font-size: 13.5px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.legend { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.legend i { width: 14px; height: 6px; border-radius: 3px; background: var(--accent); display: inline-block; }
+
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); }
+.card { display: flex; flex-direction: column; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.card.in { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.fig { aspect-ratio: 2 / 1; background: var(--figbg); border-bottom: 1px solid var(--line); }
+.fsvg { width: 100%; height: 100%; display: block; }
+.fsvg .fl { stroke: var(--scene); stroke-width: 1.2; }
+.fsvg .sc { fill: var(--scene); }
+.fsvg .sl { stroke: var(--scene); stroke-width: 2.5; fill: none; stroke-linecap: round; }
+.fsvg .far { fill: none; stroke: var(--far); stroke-width: 5.4; stroke-linecap: round; stroke-linejoin: round; }
+.fsvg .nr { fill: none; stroke: var(--fig); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.fsvg .nr.ft { stroke-width: 4.6; }
+.fsvg .trk { stroke: var(--fig); stroke-width: 9.5; stroke-linecap: round; }
+.fsvg .hd { fill: var(--fig); }
+.fsvg .hi { fill: none; stroke: var(--accent); stroke-width: 6.4; stroke-linecap: round; stroke-linejoin: round; }
+.fsvg .hif { fill: var(--accent); }
+.fsvg .eqd { fill: var(--eq); }
+.fsvg .eqh { fill: var(--figbg); }
+.fsvg .cb { stroke: var(--eq); stroke-width: .9; }
+.fsvg .cap { font: 600 5px var(--font-b); fill: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+.fsvg .dv { stroke: var(--scene); stroke-width: .5; stroke-dasharray: 1.5 2; }
+.cbody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.cbody h3 { margin: 0; font: 600 16px/1.25 var(--font-b); text-wrap: balance; }
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.tag { padding: 2px 8px; border-radius: 5px; background: var(--surface2); border: 1px solid var(--line); color: var(--ink); font-size: 12px; }
+.dots { letter-spacing: 2px; color: var(--accent); font-size: 11px; }
+.dots span { color: var(--line2); }
+.sec { margin: 0; font-size: 13px; color: var(--muted); }
+details { font-size: 14px; }
+summary { cursor: pointer; color: var(--muted); font-size: 13.5px; padding: 2px 0; }
+summary:hover { color: var(--ink); }
+details p { margin: 6px 0 0; }
+.add { margin-top: auto; height: 42px; border-radius: 8px; border: 1.5px solid var(--ink); background: transparent; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.add:hover { background: var(--ink); color: var(--bg); }
+.add[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.empty { padding: 36px 8px; color: var(--muted); }
+
+/* ---------- тренировка ---------- */
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.plan-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.close { display: none; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line2); background: transparent; }
+.wname { width: 100%; margin-top: 10px; height: 44px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 8px; background: var(--surface2); font: 600 18px var(--font-b); }
+.stats { margin: 10px 0 0; font: 500 12.5px var(--font-m); color: var(--muted); min-height: 18px; }
+.items { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.pi { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--surface2); }
+.pi-top { display: flex; gap: 10px; align-items: center; }
+.thumb { flex: none; width: 56px; height: 56px; background: var(--figbg); border-radius: 8px; border: 1px solid var(--line); }
+.pi-name { flex: 1; min-width: 0; }
+.pi-name b { display: block; font-weight: 600; font-size: 14.5px; line-height: 1.25; overflow-wrap: anywhere; }
+.pi-name span { font-size: 12px; color: var(--muted); }
+.ibtns { display: flex; gap: 2px; flex: none; }
+.ib { width: 32px; height: 32px; border-radius: 6px; border: 0; background: transparent; color: var(--muted); font-size: 16px; line-height: 1; }
+.ib:hover:not(:disabled) { background: var(--line); color: var(--ink); }
+.ib:disabled { opacity: .3; cursor: default; }
+.sets { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.set, .set-h { display: grid; grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 36px 28px; gap: 6px; align-items: center; }
+.set-h { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.set-h span:nth-child(2), .set-h span:nth-child(3) { text-align: center; }
+.set > b { font: 500 12px var(--font-m); color: var(--muted); text-align: center; }
+.num { width: 100%; min-width: 0; height: 38px; text-align: center; border: 1px solid var(--line2); border-radius: 6px; background: var(--surface); font: 500 15px var(--font-m); padding: 0 4px; -moz-appearance: textfield; }
+.num::-webkit-outer-spin-button, .num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.set.done .num { color: var(--muted); background: transparent; }
+.chk { width: 36px; height: 36px; border-radius: 6px; border: 1.5px solid var(--line2); background: var(--surface); display: grid; place-items: center; padding: 0; color: transparent; }
+.chk svg { width: 16px; height: 16px; }
+.chk[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--accent-ink); }
+.rm { width: 28px; height: 28px; border: 0; background: transparent; color: var(--muted); border-radius: 6px; font-size: 16px; }
+.rm:hover { background: var(--line); color: var(--ink); }
+.addset { margin-top: 8px; height: 34px; border: 1px dashed var(--line2); border-radius: 6px; background: transparent; width: 100%; color: var(--muted); font-size: 13.5px; }
+.addset:hover { color: var(--ink); border-color: var(--ink); }
+.plan-empty { margin: 14px 0 0; padding: 22px 12px; border: 1px dashed var(--line2); border-radius: 10px; text-align: center; color: var(--muted); font-size: 14px; }
+.plan-empty svg { width: 54px; height: 54px; margin-bottom: 6px; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.btn { height: 42px; padding: 0 16px; border-radius: 8px; border: 1.5px solid var(--ink); background: transparent; font-weight: 600; }
+.btn:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 1 1 140px; }
+.btn.pri:hover:not(:disabled) { filter: brightness(.94); background: var(--accent); color: var(--accent-ink); }
+.btn.soft { border-color: var(--line2); font-weight: 500; }
+.btn.warn { border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.copybox { display: block; width: 100%; margin-top: 10px; min-height: 120px; padding: 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--surface2); font: 12.5px/1.5 var(--font-m); resize: vertical; }
+.saved { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.saved ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sv { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface2); }
+.sv.cur { border-color: var(--accent); }
+.sv-main { flex: 1; min-width: 0; text-align: left; border: 0; background: transparent; padding: 0; }
+.sv-main b { display: block; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.sv-main span { font-size: 12px; color: var(--muted); }
+.sv-del { flex: none; height: 30px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--line2); background: transparent; font-size: 12.5px; color: var(--muted); }
+.sv-del.sure { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.saved-empty { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+
+/* ---------- мобильная шторка ---------- */
+.fab { position: fixed; z-index: 25; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); height: 52px; border-radius: 14px; border: 0; background: var(--ink); color: var(--bg); font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); max-width: 560px; margin-inline: auto; }
+.fab b { min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 600 14px var(--font-m); }
+@media (min-width: 1100px) { .fab { display: none; } }
+@media (max-width: 1099.98px) {
+  .plan { position: fixed; z-index: 40; inset: 0; border-radius: 0; border: 0; overflow: auto; padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 28px); transform: translateY(102%); visibility: hidden; transition: transform .22s ease, visibility 0s .22s; }
+  .plan.open { transform: none; visibility: visible; transition: transform .22s ease; }
+  .close { display: inline-block; }
+  .plan > * { max-width: 640px; margin-inline: auto; }
+}
+@media (max-width: 520px) {
+  .lib-title h2 { font-size: 28px; }
+  .brand h1 { font-size: 19px; }
+  .sync span { display: none; }
+}
+.toast { position: fixed; z-index: 60; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 80px); transform: translate(-50%, 12px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (min-width: 1100px) { .toast { bottom: 28px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.gd { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.gd-text { margin: 8px 0 0; font-size: 13.5px; color: var(--muted); }
+.gd .acts { margin-top: 10px; }
+.gd-cid { margin-top: 12px; }
+.gd-cid label { font-size: 12.5px; color: var(--muted); }
+.gd-row { display: flex; gap: 8px; margin-top: 4px; }
+.gd-in { flex: 1; min-width: 0; height: 42px; padding: 0 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--surface2); font: 12.5px var(--font-m); }
+.gd-help { margin-top: 12px; font-size: 13.5px; }
+.gd-help ol { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+.gd-help li { margin-bottom: 6px; }
+.gd-help code { font: 12px var(--font-m); background: var(--surface2); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+</style>
+
+<header class="top"><div class="top-in">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="var(--accent)"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="var(--accent-ink)" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="var(--accent-ink)"/></svg>
+    <h1>Планер тренировок</h1>
+  </div>
+  <div class="sync" id="sync" data-s="none" aria-live="polite"><i></i><span id="syncText">Автосохранение</span></div>
+</div></header>
+
+<main class="layout">
+  <aside class="side" id="side">
+    <h2>Часть тела</h2>
+    <div class="groups" id="groups" role="group" aria-label="Группы мышц"></div>
+    <button class="map-toggle" id="mapToggle" type="button" aria-expanded="false">Показать карту тела</button>
+    <div class="map" id="map"></div>
+  </aside>
+
+  <section class="lib" aria-labelledby="libTitle">
+    <div class="lib-head">
+      <div class="lib-title"><h2 id="libTitle">Грудь</h2><span id="libCount"></span></div>
+      <div class="tools">
+        <label class="sr" for="q">Поиск упражнения</label>
+        <input class="search" id="q" type="search" placeholder="Поиск по названию или мышце" autocomplete="off">
+        <div class="chips" id="eqChips" role="group" aria-label="Оборудование"></div>
+      </div>
+      <div class="legend"><i></i>Красным выделена работающая мышца</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <aside class="plan" id="plan" aria-label="Моя тренировка">
+    <div class="plan-head"><h2>Моя тренировка</h2><button class="close" id="closePlan" type="button">Закрыть</button></div>
+    <label class="sr" for="wname">Название тренировки</label>
+    <input class="wname" id="wname" type="text" maxlength="60" placeholder="Название тренировки" autocomplete="off">
+    <p class="stats" id="stats"></p>
+    <ol class="items" id="items"></ol>
+    <div id="planEmpty"></div>
+    <div class="acts">
+      <button class="btn pri" id="saveBtn" type="button">Сохранить</button>
+      <button class="btn soft" id="copyBtn" type="button">Копировать</button>
+      <button class="btn soft" id="clearBtn" type="button">Очистить</button>
+    </div>
+    <textarea class="copybox" id="copyBox" readonly hidden aria-label="Текст тренировки"></textarea>
+    <section class="saved" aria-labelledby="savedT">
+      <h2 id="savedT">Сохранённые тренировки</h2>
+      <div id="saved"></div>
+    </section>
+        <section class="gd" id="gd" aria-labelledby="gdT" hidden>
+      <h2 id="gdT">Синхронизация</h2>
+      <p class="gd-text" id="gdText"></p>
+      <div class="acts" id="gdBtns"></div>
+      <div class="gd-cid" id="gdCidRow">
+        <label for="gdCid">Client ID Google</label>
+        <div class="gd-row"><input class="gd-in" id="gdCid" type="text" placeholder="1234567890-abc….apps.googleusercontent.com" autocomplete="off" spellcheck="false"><button class="btn soft" type="button" data-gd="savecid">Сохранить</button></div>
+      </div>
+      <details class="gd-help" id="gdHelp">
+        <summary>Как получить Client ID (один раз, бесплатно)</summary>
+        <ol>
+          <li>Откройте console.cloud.google.com и создайте проект.</li>
+          <li>В разделе «API и сервисы → Библиотека» включите Google Drive API.</li>
+          <li>В «Экран согласия OAuth» выберите тип «Внешний», укажите название и свою почту, добавьте область доступа <code>…/auth/drive.appdata</code> и нажмите «Опубликовать приложение».</li>
+          <li>В «Учётные данные» создайте «Идентификатор клиента OAuth», тип «Веб-приложение». В «Разрешённые источники JavaScript» добавьте адрес этого сайта, например <code>https://ваш-ник.github.io</code>.</li>
+          <li>Скопируйте Client ID и вставьте в поле выше.</li>
+        </ol>
+      </details>
+    </section>
+
+  </aside>
+</main>
+
+<button class="fab" id="fab" type="button" aria-haspopup="dialog">Моя тренировка <b id="fabCount">0</b></button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Рисовалка фигуры: вид сбоку, человек смотрит вправо ---------- */
+const FIG = (() => {
+  const L = { t: 25, th: 20, sh: 19, ua: 14, fa: 13, nk: 11, ft: 7 };
+  const rad = d => d * Math.PI / 180;
+  const n1 = v => Math.round(v * 10) / 10;
+  const lerp = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+  const pts = (...ps) => ps.map(p => n1(p[0]) + ',' + n1(p[1])).join(' ');
+
+  // двухзвенная кинематика: P - начало, T - цель, возвращает сустав и конец
+  function ik(P, T, l1, l2, pref) {
+    const dx = T[0] - P[0], dy = T[1] - P[1];
+    const d = Math.hypot(dx, dy) || 0.001;
+    const dd = Math.min(Math.max(d, Math.abs(l1 - l2) + 0.01), l1 + l2 - 0.02);
+    const ux = dx / d, uy = dy / d;
+    const a = (l1 * l1 - l2 * l2 + dd * dd) / (2 * dd);
+    const h = Math.sqrt(Math.max(l1 * l1 - a * a, 0));
+    const bx = P[0] + ux * a, by = P[1] + uy * a;
+    const c1 = [bx - uy * h, by + ux * h], c2 = [bx + uy * h, by - ux * h];
+    const pv = { f: [1, 0], b: [-1, 0], u: [0, -1], d: [0, 1] }[pref || 'f'];
+    const s = c => (c[0] - bx) * pv[0] + (c[1] - by) * pv[1];
+    return { mid: s(c1) >= s(c2) ? c1 : c2, end: [P[0] + ux * dd, P[1] + uy * dd] };
+  }
+  // сустав задан явно (локоть/колено), конец - по направлению к цели
+  function fixed(mid, T, l2) {
+    const dx = T[0] - mid[0], dy = T[1] - mid[1], d = Math.hypot(dx, dy) || 1;
+    return { mid, end: [mid[0] + dx / d * l2, mid[1] + dy / d * l2] };
+  }
+  function limb(P, T, l1, l2, pref, mid) {
+    return mid ? fixed(mid, T, l2) : ik(P, T, l1, l2, pref);
+  }
+
+  function solve(p) {
+    const hip = p.h || [50, 52];
+    const tr = rad(p.t || 0);
+    const sh = [hip[0] + Math.sin(tr) * L.t, hip[1] - Math.cos(tr) * L.t - (p.sl || 0)];
+    const hdr = rad((p.t || 0) + (p.hd || 0));
+    const head = [sh[0] + Math.sin(hdr) * L.nk, sh[1] - Math.cos(hdr) * L.nk];
+    const hand = p.hand || (p.hr ? [sh[0] + p.hr[0], sh[1] + p.hr[1]] : [sh[0] + 3, sh[1] + 27]);
+    const arm = limb(sh, hand, L.ua, L.fa, p.ek || 'b', p.el);
+    const hand2 = p.hand2 || [hand[0] - 2, hand[1]];
+    const el2 = p.el2 || (p.el ? [p.el[0] - 2, p.el[1]] : null);
+    const arm2 = limb(sh, hand2, L.ua, L.fa, p.ek2 || p.ek || 'b', el2);
+    const foot = p.foot || [hip[0] - 2, 91];
+    const leg = limb(hip, foot, L.th, L.sh, p.kk || 'f', p.kn);
+    const foot2 = p.foot2 || [foot[0] - 4, foot[1]];
+    const kn2 = p.kn2 || (p.kn ? [p.kn[0] - 3, p.kn[1]] : null);
+    const leg2 = limb(hip, foot2, L.th, L.sh, p.kk2 || p.kk || 'f', kn2);
+    return { hip, sh, head, arm, arm2, leg, leg2 };
+  }
+
+  function toe(a, ang) {
+    const r = rad(ang == null ? 18 : ang);
+    return [a[0] + Math.cos(r) * L.ft, a[1] + Math.sin(r) * L.ft];
+  }
+
+  function equip(kind, w, far) {
+    const o = far ? ' opacity=".55"' : '';
+    if (kind === 'bb') return `<g${o}><circle class="eqd" cx="${n1(w[0])}" cy="${n1(w[1])}" r="8"/><circle class="eqh" cx="${n1(w[0])}" cy="${n1(w[1])}" r="2.6"/></g>`;
+    if (kind === 'db') return `<rect${o} class="eqd" x="${n1(w[0] - 5)}" y="${n1(w[1] - 3.6)}" width="10" height="7.2" rx="2.2"/>`;
+    if (kind === 'h') return `<circle${o} class="eqd" cx="${n1(w[0])}" cy="${n1(w[1])}" r="2.8"/>`;
+    return '';
+  }
+
+  // hl - список подсвеченных мышц
+  function draw(p) {
+    const s = solve(p);
+    const hl = new Set(p.hl || []);
+    const sh = s.sh, hip = s.hip;
+    let o = '';
+    // дальняя рука и нога
+    o += `<polyline class="far" points="${pts(sh, s.arm2.mid, s.arm2.end)}"/>`;
+    o += `<polyline class="far" points="${pts(hip, s.leg2.mid, s.leg2.end, toe(s.leg2.end, p.fa))}"/>`;
+    // корпус
+    o += `<line class="trk" x1="${n1(hip[0])}" y1="${n1(hip[1])}" x2="${n1(sh[0])}" y2="${n1(sh[1])}"/>`;
+    const seg = (a, b, w) => `<line class="hi" style="stroke-width:${w}" x1="${n1(a[0])}" y1="${n1(a[1])}" x2="${n1(b[0])}" y2="${n1(b[1])}"/>`;
+    if (hl.has('chest')) o += seg(sh, lerp(sh, hip, .42), 10);
+    if (hl.has('back')) o += seg(sh, lerp(sh, hip, .78), 10);
+    if (hl.has('abs')) o += seg(hip, lerp(hip, sh, .6), 10);
+    // ближняя нога
+    o += `<polyline class="nr" points="${pts(hip, s.leg.mid, s.leg.end)}"/>`;
+    o += `<polyline class="nr ft" points="${pts(s.leg.end, toe(s.leg.end, p.fa))}"/>`;
+    if (hl.has('thigh')) o += `<polyline class="hi" points="${pts(hip, s.leg.mid)}"/>`;
+    if (hl.has('shin')) o += `<polyline class="hi" points="${pts(s.leg.mid, s.leg.end)}"/>`;
+    if (hl.has('glute')) o += `<circle class="hif" cx="${n1(hip[0])}" cy="${n1(hip[1])}" r="6"/>`;
+    // голова
+    o += `<circle class="hd" cx="${n1(s.head[0])}" cy="${n1(s.head[1])}" r="6.6"/>`;
+    if (hl.has('trap')) o += seg(sh, lerp(sh, s.head, .8), 7);
+    // ближняя рука
+    o += `<polyline class="nr" points="${pts(sh, s.arm.mid, s.arm.end)}"/>`;
+    if (hl.has('uarm')) o += `<polyline class="hi" points="${pts(sh, s.arm.mid)}"/>`;
+    if (hl.has('farm')) o += `<polyline class="hi" points="${pts(s.arm.mid, s.arm.end)}"/>`;
+    if (hl.has('delt')) o += `<circle class="hif" cx="${n1(sh[0])}" cy="${n1(sh[1])}" r="5.6"/>`;
+    // оборудование
+    const w = s.arm.end;
+    if (p.cb) {
+      const tgt = p.cbf ? s.leg.end : w;
+      o += `<line class="cb" x1="${p.cb[0]}" y1="${p.cb[1]}" x2="${n1(tgt[0])}" y2="${n1(tgt[1])}"/><circle class="eqd" cx="${p.cb[0]}" cy="${p.cb[1]}" r="3"/>`;
+      if (p.cbf) o += `<circle class="eqd" cx="${n1(tgt[0])}" cy="${n1(tgt[1])}" r="2.8"/>`;
+    }
+    if (p.eq) {
+      const at = p.eqs ? [sh[0] + p.eqs[0], sh[1] + p.eqs[1]] : w;
+      if (p.eq === 'db' && !p.eqs) o += equip('db', s.arm2.end, true);
+      o += equip(p.eq, at);
+    }
+    if (p.ra) {
+      const a = s.leg.end;
+      o += `<circle class="eqd" cx="${n1(a[0] + (p.ra[0] || 0))}" cy="${n1(a[1] + (p.ra[1] || 0))}" r="3.6"/>`;
+    }
+    if (p.sc) o += p.sc;
+    return o;
+  }
+
+  const CSS_NOTE = '';
+
+  // ex.p - массив поз (1 или 2), ex.s - декорации, ex.flip - зеркалить
+  function figure(ex, mini) {
+    const frames = mini ? [ex.p[0]] : ex.p;
+    const n = frames.length;
+    const W = n === 1 && !mini ? 100 : 100 * n;
+    const caps = n === 1 ? ['Удержание'] : ['Старт', 'Финиш'];
+    let g = '';
+    frames.forEach((p0, i) => {
+      const p = Object.assign({}, ex.o || {}, p0);
+      let inner = `<line class="fl" x1="2" y1="94.5" x2="98" y2="94.5"/>` + (ex.s || '') + draw(p);
+      if (ex.flip) inner = `<g transform="translate(100 0) scale(-1 1)">${inner}</g>`;
+      g += `<g transform="translate(${i * 100} 0)"><g transform="translate(50 94) scale(.9) translate(-50 -94)">${inner}</g>` +
+        (mini ? '' : `<text class="cap" x="5" y="9">${caps[i]}</text>`) + `</g>`;
+      if (i > 0 && !mini) g += `<line class="dv" x1="${i * 100}" y1="6" x2="${i * 100}" y2="94"/>`;
+    });
+    const vb = mini ? '0 0 100 100' : `0 0 ${W} 100`;
+    return `<svg class="fsvg" viewBox="${vb}" role="img" aria-label="Схема упражнения: ${ex.n}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+  }
+
+  return { figure, solve };
+})();
+
+/* ---------- Данные: группы мышц, оборудование, упражнения ---------- */
+const GROUPS = [
+  { id: 'chest', n: 'Грудь' },
+  { id: 'back', n: 'Спина' },
+  { id: 'shoulders', n: 'Плечи' },
+  { id: 'biceps', n: 'Бицепс' },
+  { id: 'triceps', n: 'Трицепс' },
+  { id: 'forearms', n: 'Предплечья' },
+  { id: 'abs', n: 'Пресс' },
+  { id: 'glutes', n: 'Ягодицы' },
+  { id: 'quads', n: 'Квадрицепс' },
+  { id: 'hams', n: 'Бицепс бедра' },
+  { id: 'calves', n: 'Икры' }
+];
+const EQUIP = { barbell: 'Штанга', dumbbell: 'Гантели', machine: 'Тренажёр', cable: 'Блок', body: 'Свой вес' };
+
+/* декорации сцены */
+const S = {
+  rect: (x, y, w, h) => `<rect class="sc" x="${x}" y="${y}" width="${w}" height="${h}" rx="1.6"/>`,
+  line: (x1, y1, x2, y2, w) => `<path class="sl"${w ? ` style="stroke-width:${w}"` : ''} d="M${x1} ${y1}L${x2} ${y2}"/>`,
+  bench: (x1, x2, y) => `<rect class="sc" x="${x1}" y="${y}" width="${x2 - x1}" height="5" rx="2"/><path class="sl" d="M${x1 + 5} ${y + 5}V94M${x2 - 5} ${y + 5}V94"/>`
+};
+const LYING = { h: [64, 56], t: -90, foot: [76, 91], kk: 'f' };
+const BENCH = S.bench(22, 72, 62);
+const SEATED = S.rect(30, 76, 26, 5) + S.line(36, 81, 36, 94) + S.line(50, 81, 50, 94);
+
+const EXERCISES = [
+  /* ===== ГРУДЬ ===== */
+  { id: 'bench-press', g: 'chest', n: 'Жим штанги лёжа', q: 'barbell', lv: 2, sec: 'Трицепс, передние дельты',
+    tip: 'Лопатки сведены и прижаты к скамье, стопы упираются в пол. Опускайте гриф к нижней части груди и выжимайте вверх, не отрывая таз.',
+    s: BENCH, o: { ...LYING, eq: 'bb', ek: 'f', hl: ['chest'] }, p: [{ hand: [41, 29] }, { hand: [41, 48] }] },
+  { id: 'db-bench', g: 'chest', n: 'Жим гантелей лёжа', q: 'dumbbell', lv: 1, sec: 'Трицепс, передние дельты',
+    tip: 'Опускайте гантели до уровня груди, локти под углом около 45° к корпусу. Большая амплитуда лучше растягивает грудные мышцы.',
+    s: BENCH, o: { ...LYING, eq: 'db', ek: 'f', hl: ['chest'] }, p: [{ hand: [41, 29] }, { hand: [38, 51] }] },
+  { id: 'incline-db', g: 'chest', n: 'Жим гантелей на наклонной скамье', q: 'dumbbell', lv: 2, sec: 'Передние дельты, трицепс',
+    tip: 'Угол скамьи 30–45°. Выжимайте гантели вверх и чуть внутрь, не разводя локти слишком широко. Нагружается верх груди.',
+    s: S.line(53, 73, 40, 51, 5) + S.rect(50, 75, 22, 5) + S.line(60, 80, 60, 94) + S.line(46, 62, 44, 94),
+    o: { h: [58, 70], t: -30, foot: [68, 91], kk: 'f', eq: 'db', ek: 'd', hl: ['chest'] }, p: [{ hand: [47, 22] }, { hand: [43, 40] }] },
+  { id: 'db-fly', g: 'chest', n: 'Разводка гантелей лёжа', q: 'dumbbell', lv: 2, sec: 'Передние дельты',
+    tip: 'Локти слегка согнуты и зафиксированы. Разводите руки по дуге до растяжения груди и сводите обратно, как будто обнимаете бочку.',
+    s: BENCH, o: { ...LYING, eq: 'db', ek: 'f', hl: ['chest'] }, p: [{ hand: [41, 30] }, { hand: [42, 62], ek: 'u' }] },
+  { id: 'push-up', g: 'chest', n: 'Отжимания от пола', q: 'body', lv: 1, sec: 'Трицепс, пресс',
+    tip: 'Тело — прямая линия от макушки до пяток. Опускайтесь, пока грудь почти не коснётся пола, локти под углом 45° к корпусу.',
+    o: { ek: 'b', kk: 'u', hl: ['chest', 'delt'] },
+    p: [{ h: [44, 73], t: 80, hand: [70, 92], foot: [8, 91] }, { h: [44, 84], t: 84, hand: [70, 92], foot: [8, 91] }] },
+  { id: 'crossover', g: 'chest', n: 'Сведение рук в кроссовере', q: 'cable', lv: 2, sec: 'Передние дельты',
+    tip: 'Небольшой наклон корпуса вперёд, руки слегка согнуты. Сводите рукояти перед собой по дуге и задержитесь на секунду в точке сведения.',
+    s: S.line(18, 6, 18, 94, 3) + S.line(8, 94, 30, 94, 3),
+    o: { h: [50, 52], t: 10, foot: [44, 91], foot2: [58, 91], cb: [18, 6], eq: 'h', ek: 'd', hl: ['chest'] },
+    p: [{ hand: [40, 32], ek: 'b' }, { hand: [72, 50] }] },
+  { id: 'chest-press', g: 'chest', n: 'Жим в тренажёре сидя', q: 'machine', lv: 1, sec: 'Трицепс, передние дельты',
+    tip: 'Отрегулируйте сиденье так, чтобы рукояти были на уровне середины груди. Выжимайте плавно, не «запирая» локти в верхней точке.',
+    s: SEATED + S.line(33, 50, 34, 76, 6),
+    o: { h: [40, 70], t: -5, foot: [56, 91], kk: 'f', eq: 'h', ek: 'd', hl: ['chest'] }, p: [{ hand: [56, 47] }, { hand: [64, 45] }] },
+
+  /* ===== СПИНА ===== */
+  { id: 'pull-up', g: 'back', n: 'Подтягивания широким хватом', q: 'body', lv: 3, sec: 'Бицепс, предплечья',
+    tip: 'Хват шире плеч. Тяните грудь к перекладине, сводя лопатки, и опускайтесь до полного виса без раскачивания.',
+    s: S.line(30, 14, 72, 14, 3) + S.line(32, 14, 32, 94, 2.5) + S.line(70, 14, 70, 94, 2.5),
+    o: { hand: [52, 14], hl: ['back'] },
+    p: [{ h: [50, 66], t: 0, ek: 'b', foot: [40, 88], kk: 'b' }, { h: [47, 52], t: -12, ek: 'd', foot: [38, 76], kk: 'b' }] },
+  { id: 'lat-pulldown', g: 'back', n: 'Тяга верхнего блока к груди', q: 'cable', lv: 1, sec: 'Бицепс, задние дельты',
+    tip: 'Слегка отклонитесь назад и тяните рукоять к верху груди, ведя локти вниз. Не помогайте себе корпусом.',
+    s: S.rect(40, 77, 22, 5) + S.line(44, 82, 44, 94) + S.line(58, 82, 58, 94) + S.rect(56, 63, 12, 4),
+    o: { h: [50, 72], t: -8, foot: [66, 91], kk: 'f', cb: [56, 3], eq: 'h', hl: ['back'] },
+    p: [{ hand: [56, 18], ek: 'b' }, { hand: [57, 42], ek: 'd' }] },
+  { id: 'bb-row', g: 'back', n: 'Тяга штанги в наклоне', q: 'barbell', lv: 2, sec: 'Бицепс, задние дельты, разгибатели спины',
+    tip: 'Спина прямая, корпус наклонён почти до параллели с полом. Тяните гриф к низу живота, сводя лопатки.',
+    o: { h: [36, 58], t: 65, foot: [38, 91], foot2: [34, 91], kk: 'f', eq: 'bb', ek: 'b', hl: ['back'] },
+    p: [{ hand: [60, 74] }, { hand: [56, 60] }] },
+  { id: 'db-row', g: 'back', n: 'Тяга гантели одной рукой', q: 'dumbbell', lv: 1, sec: 'Бицепс, задние дельты',
+    tip: 'Свободной рукой опирайтесь на скамью, спина ровная. Тяните гантель к поясу, локоть идёт вдоль корпуса.',
+    s: S.bench(50, 84, 62),
+    o: { h: [30, 53], t: 80, foot: [30, 91], foot2: [24, 91], kk: 'f', eq: 'db', ek: 'b', hand2: [62, 60], ek2: 'b', hl: ['back'] },
+    p: [{ hand: [56, 76] }, { hand: [44, 56] }] },
+  { id: 'seated-row', g: 'back', n: 'Тяга нижнего блока сидя', q: 'cable', lv: 1, sec: 'Бицепс, ромбовидные мышцы',
+    tip: 'Сядьте с прямой спиной и слегка согнутыми коленями. Тяните рукоять к животу, сводя лопатки, без раскачивания корпусом.',
+    s: S.line(70, 66, 70, 92, 3) + S.rect(20, 83, 22, 4) + S.line(26, 87, 26, 94) + S.line(38, 87, 38, 94),
+    o: { h: [30, 78], foot: [66, 80], foot2: [64, 80], kk: 'u', fa: -70, cb: [96, 84], eq: 'h', ek: 'b', hl: ['back'] },
+    p: [{ t: 0, hand: [57, 58] }, { t: -10, hand: [34, 68] }] },
+  { id: 'hyperext', g: 'back', n: 'Гиперэкстензия', q: 'body', lv: 1, sec: 'Ягодицы, бицепс бедра',
+    tip: 'Бёдра лежат на валике, корпус ровный. Поднимайтесь до прямой линии с ногами, не прогибаясь в пояснице.',
+    s: S.rect(40, 61, 18, 5) + S.line(49, 66, 56, 94, 3) + S.line(49, 66, 38, 94, 3) + S.line(16, 70, 26, 86, 3),
+    o: { h: [50, 56], foot: [22, 74], kk: 'u', ek: 'd', hl: ['back'] },
+    p: [{ t: 140, hr: [-3, -7] }, { t: 78, hr: [-3, -7] }] },
+  { id: 'deadlift', g: 'back', n: 'Становая тяга', q: 'barbell', lv: 3, sec: 'Ягодицы, бицепс бедра, трапеции',
+    tip: 'Гриф над серединой стопы, спина нейтральная. Начинайте движение ногами и тем же путём возвращайте гриф вниз. Тяжёлый вес — только после освоения техники.',
+    o: { eq: 'bb', ek: 'b', kk: 'f', foot: [46, 91], hl: ['back'] },
+    p: [{ h: [32, 58], t: 55, hand: [54, 70] }, { h: [48, 52], t: -3 }] },
+
+  /* ===== ПЛЕЧИ ===== */
+  { id: 'ohp', g: 'shoulders', n: 'Жим штанги стоя', q: 'barbell', lv: 2, sec: 'Трицепс, верх груди',
+    tip: 'Гриф на верхней части груди, корпус напряжён. Выжимайте вверх, слегка убирая голову назад, и фиксируйте над макушкой.',
+    o: { eq: 'bb', ek: 'd', hl: ['delt'] }, p: [{ hand: [57, 30] }, { hand: [53, 1] }] },
+  { id: 'db-shoulder-press', g: 'shoulders', n: 'Жим гантелей сидя', q: 'dumbbell', lv: 1, sec: 'Трицепс',
+    tip: 'Спина прижата к спинке, гантели на уровне ушей. Выжимайте вверх по небольшой дуге и плавно опускайте.',
+    s: S.rect(32, 75, 26, 5) + S.line(38, 80, 38, 94) + S.line(52, 80, 52, 94) + S.line(36, 76, 38, 40, 6),
+    o: { h: [44, 70], t: -4, foot: [58, 91], kk: 'f', eq: 'db', ek: 'd', hl: ['delt'] }, p: [{ hand: [48, 36] }, { hand: [47, 19] }] },
+  { id: 'lateral-raise', g: 'shoulders', n: 'Махи гантелями в стороны', q: 'dumbbell', lv: 1, sec: 'Трапеции',
+    tip: 'Локти слегка согнуты, поднимайте руки до уровня плеч. Движение без рывков, мизинец чуть выше большого пальца.',
+    o: { eq: 'db', ek: 'd', hl: ['delt'] }, p: [{ hr: [4, 27] }, { hr: [7, 4] }] },
+  { id: 'front-raise', g: 'shoulders', n: 'Подъём гантелей перед собой', q: 'dumbbell', lv: 1, sec: 'Верх груди',
+    tip: 'Поднимайте руки перед собой до уровня плеч, корпус неподвижен. Опускайте медленно, не раскачиваясь.',
+    o: { eq: 'db', ek: 'u', hl: ['delt'] }, p: [{ hr: [3, 27] }, { hr: [26, 0] }] },
+  { id: 'upright-row', g: 'shoulders', n: 'Тяга штанги к подбородку', q: 'barbell', lv: 2, sec: 'Трапеции, бицепс',
+    tip: 'Хват немного уже плеч. Ведите гриф вдоль тела, локти выше кистей. Если беспокоят плечи, не поднимайте гриф выше ключиц.',
+    o: { eq: 'bb', ek: 'u', hl: ['delt', 'trap'] }, p: [{ hr: [5, 27] }, { hr: [8, 5] }] },
+  { id: 'rear-fly', g: 'shoulders', n: 'Разведения гантелей в наклоне', q: 'dumbbell', lv: 2, sec: 'Ромбовидные мышцы, трапеции',
+    tip: 'Наклонитесь вперёд с прямой спиной, разводите руки в стороны до линии спины. В конце движения сводите лопатки.',
+    o: { h: [38, 56], t: 70, foot: [40, 91], kk: 'f', eq: 'db', ek: 'd', hl: ['delt'] }, p: [{ hr: [0, 26] }, { hand: [64, 52] }] },
+  { id: 'shrug', g: 'shoulders', n: 'Шраги с гантелями', q: 'dumbbell', lv: 1, sec: 'Трапеции',
+    tip: 'Поднимайте плечи к ушам по прямой, без вращений. Задержитесь на секунду вверху и плавно опустите.',
+    o: { eq: 'db', hl: ['trap'] }, p: [{}, { sl: 5 }] },
+
+  /* ===== БИЦЕПС ===== */
+  { id: 'bb-curl', g: 'biceps', n: 'Подъём штанги на бицепс', q: 'barbell', lv: 1, sec: 'Предплечья',
+    tip: 'Локти прижаты к корпусу и не уходят вперёд. Поднимайте без раскачивания, опускайте за 2–3 секунды.',
+    o: { eq: 'bb', ek: 'b', hl: ['uarm'] }, p: [{ hr: [3, 27] }, { el: [51, 41], hand: [62, 31] }] },
+  { id: 'db-curl', g: 'biceps', n: 'Подъём гантелей с супинацией', q: 'dumbbell', lv: 1, sec: 'Предплечья',
+    tip: 'Разворачивайте кисть из нейтрального положения ладонью вверх по ходу подъёма. Руки можно сгибать поочерёдно.',
+    o: { eq: 'db', ek: 'b', hl: ['uarm'] }, p: [{ hr: [3, 27] }, { el: [51, 41], hand: [62, 31], hand2: [49, 54] }] },
+  { id: 'hammer', g: 'biceps', n: 'Молотки', q: 'dumbbell', lv: 1, sec: 'Плечевая мышца, предплечья',
+    tip: 'Хват нейтральный, ладони смотрят друг на друга. Локти зафиксированы, движение только в локтевом суставе.',
+    o: { eq: 'db', ek: 'b', hl: ['uarm', 'farm'] }, p: [{ hr: [3, 27] }, { el: [51, 41], hand: [60, 32] }] },
+  { id: 'concentration', g: 'biceps', n: 'Концентрированный подъём', q: 'dumbbell', lv: 1, sec: 'Плечевая мышца',
+    tip: 'Сидя, упритесь локтем во внутреннюю часть бедра. Поднимайте гантель к плечу и сожмите бицепс в верхней точке.',
+    s: S.rect(34, 71, 26, 5) + S.line(40, 76, 40, 94) + S.line(56, 76, 56, 94),
+    o: { h: [46, 66], t: 45, foot: [66, 91], kk: 'f', eq: 'db', hl: ['uarm'] },
+    p: [{ el: [62, 63], hand: [64, 80] }, { el: [62, 63], hand: [74, 52] }] },
+  { id: 'preacher', g: 'biceps', n: 'Подъём на скамье Скотта', q: 'barbell', lv: 2, sec: 'Плечевая мышца',
+    tip: 'Плечи плотно прижаты к подушке. Опускайте почти до полного разгибания, но без рывка в нижней точке.',
+    s: S.rect(34, 76, 24, 5) + S.line(40, 81, 40, 94) + S.line(54, 81, 54, 94) + S.line(50, 52, 64, 78, 6),
+    o: { h: [42, 70], t: 15, foot: [58, 91], kk: 'f', eq: 'bb', hl: ['uarm'] },
+    p: [{ el: [57, 57], hand: [66, 70] }, { el: [57, 57], hand: [67, 46] }] },
+
+  /* ===== ТРИЦЕПС ===== */
+  { id: 'close-grip', g: 'triceps', n: 'Жим штанги узким хватом', q: 'barbell', lv: 2, sec: 'Грудь, передние дельты',
+    tip: 'Хват на ширине плеч или чуть уже, локти ближе к корпусу. Опускайте гриф к низу груди и выжимайте вверх.',
+    s: BENCH, o: { ...LYING, eq: 'bb', ek: 'f', hl: ['uarm'] }, p: [{ hand: [41, 29] }, { hand: [43, 48] }] },
+  { id: 'skull', g: 'triceps', n: 'Французский жим лёжа', q: 'barbell', lv: 2, sec: '',
+    tip: 'Плечи неподвижны, работают только предплечья. Опускайте штангу ко лбу или чуть за голову и разгибайте руки.',
+    s: BENCH, o: { ...LYING, eq: 'bb', hl: ['uarm'] }, p: [{ el: [40, 42], hand: [41, 29] }, { el: [40, 42], hand: [28, 45] }] },
+  { id: 'pushdown', g: 'triceps', n: 'Разгибание рук на верхнем блоке', q: 'cable', lv: 1, sec: '',
+    tip: 'Локти прижаты к бокам. Разгибайте руки вниз до конца, затем плавно возвращайте рукоять.',
+    s: S.line(62, 3, 62, 94, 3) + S.line(54, 94, 74, 94, 3),
+    o: { t: 8, cb: [60, 4], eq: 'h', hl: ['uarm'] }, p: [{ el: [53, 41], hand: [66, 40] }, { el: [53, 41], hand: [56, 56] }] },
+  { id: 'overhead-ext', g: 'triceps', n: 'Разгибание гантели из-за головы', q: 'dumbbell', lv: 1, sec: '',
+    tip: 'Локти смотрят вверх и не разводятся в стороны. Опускайте гантель за голову и разгибайте руки вверх.',
+    o: { eq: 'db', hl: ['uarm'] }, p: [{ el: [51, 13], hand: [44, 23] }, { el: [51, 13], hand: [51, 0] }] },
+  { id: 'dips', g: 'triceps', n: 'Отжимания на брусьях', q: 'body', lv: 3, sec: 'Грудь, передние дельты',
+    tip: 'Корпус почти вертикален — так нагрузка уходит в трицепс. Опускайтесь до угла в локтях около 90° и выжимайтесь вверх.',
+    s: S.line(40, 57, 72, 57, 3) + S.line(70, 57, 70, 94, 3),
+    o: { hand: [56, 57], ek: 'b', kk: 'b', kk2: 'b', hl: ['uarm'] },
+    p: [{ h: [50, 55], t: 10, foot: [44, 86], foot2: [40, 87] }, { h: [43, 67], t: 25, foot: [36, 90], foot2: [32, 90] }] },
+  { id: 'bench-dip', g: 'triceps', n: 'Обратные отжимания от скамьи', q: 'body', lv: 1, sec: 'Передние дельты',
+    tip: 'Кисти на скамье за спиной, ноги вытянуты вперёд. Опускайтесь, сгибая локти назад, и выжимайтесь вверх.',
+    s: S.bench(8, 40, 66),
+    o: { hand: [35, 65], ek: 'b', kk: 'u', foot: [70, 91], hl: ['uarm'] },
+    p: [{ h: [43, 64], t: -15 }, { h: [43, 76], t: -12 }] },
+
+  /* ===== ПРЕДПЛЕЧЬЯ ===== */
+  { id: 'wrist-curl', g: 'forearms', n: 'Сгибание запястий со штангой', q: 'barbell', lv: 1, sec: '',
+    tip: 'Предплечья лежат на бёдрах, кисти свисают. Сгибайте только запястья, опуская гриф на кончики пальцев.',
+    s: S.rect(26, 71, 24, 5) + S.line(30, 76, 30, 94) + S.line(46, 76, 46, 94),
+    o: { h: [38, 70], t: 35, foot: [58, 91], kk: 'f', eq: 'bb', hl: ['farm'] },
+    p: [{ el: [56, 64], hand: [72, 70] }, { el: [56, 64], hand: [72, 58] }] },
+  { id: 'wrist-ext', g: 'forearms', n: 'Разгибание запястий с гантелью', q: 'dumbbell', lv: 1, sec: '',
+    tip: 'Предплечье лежит на колене ладонью вниз. Поднимайте кисть вверх, движение медленное, вес небольшой.',
+    s: S.rect(26, 71, 24, 5) + S.line(30, 76, 30, 94) + S.line(46, 76, 46, 94),
+    o: { h: [38, 70], t: 35, foot: [58, 91], kk: 'f', eq: 'db', hl: ['farm'] },
+    p: [{ el: [56, 64], hand: [72, 70] }, { el: [56, 64], hand: [72, 58] }] },
+  { id: 'farmer', g: 'forearms', n: 'Прогулка фермера', q: 'dumbbell', lv: 1, sec: 'Трапеции, хват, пресс',
+    tip: 'Возьмите тяжёлые гантели, держите корпус прямо и идите ровным шагом 20–40 секунд.',
+    o: { eq: 'db', kk: 'f', kk2: 'f', hl: ['farm'] },
+    p: [{ foot: [58, 91], foot2: [40, 91] }, { foot: [40, 91], foot2: [58, 91] }] },
+
+  /* ===== ПРЕСС ===== */
+  { id: 'crunch', g: 'abs', n: 'Скручивания', q: 'body', lv: 1, sec: '',
+    tip: 'Поясница прижата к полу, подбородок не тяните к груди. Отрывайте лопатки от пола и сжимайте пресс вверху.',
+    o: { foot: [76, 91], kk: 'u', ek: 'd', hl: ['abs'] },
+    p: [{ h: [64, 88], t: -90, hr: [-8, -6] }, { h: [64, 88], t: -62, hr: [-7, -8] }] },
+  { id: 'hanging-leg', g: 'abs', n: 'Подъём ног в висе', q: 'body', lv: 3, sec: 'Сгибатели бедра, предплечья',
+    tip: 'Не раскачивайтесь. Поднимайте ноги до горизонтали, подкручивая таз к груди, и медленно опускайте.',
+    s: S.line(32, 5, 68, 5, 3) + S.line(32, 5, 32, 94, 2.5) + S.line(68, 5, 68, 94, 2.5),
+    o: { h: [50, 57], t: 0, hand: [50, 5], ek: 'b', hl: ['abs'] },
+    p: [{ foot: [48, 92], kk: 'f', fa: 60 }, { foot: [88, 60], kk: 'u', fa: -10 }] },
+  { id: 'plank', g: 'abs', n: 'Планка на предплечьях', q: 'body', lv: 1, sec: 'Плечи, ягодицы',
+    tip: 'Тело — прямая линия, живот и ягодицы напряжены. Не провисайте в пояснице. Держите 30–60 секунд.',
+    o: { h: [50, 81], t: 78, el: [74, 90], hand: [90, 91], el2: [72, 90], hand2: [88, 91], foot: [13, 90], kk: 'u', hl: ['abs'] },
+    p: [{}] },
+  { id: 'bicycle', g: 'abs', n: 'Велосипед', q: 'body', lv: 1, sec: 'Косые мышцы',
+    tip: 'Поочерёдно тянитесь локтем к противоположному колену, выпрямляя другую ногу. Темп медленный, без рывков.',
+    o: { h: [46, 86], t: -65, hr: [-7, -7], ek: 'd', kk: 'u', kk2: 'u', hl: ['abs'] },
+    p: [{ foot: [62, 70], foot2: [84, 86] }, { foot: [84, 86], foot2: [62, 70] }] },
+  { id: 'cable-crunch', g: 'abs', n: 'Скручивания на блоке', q: 'cable', lv: 2, sec: '',
+    tip: 'Стоя на коленях, зафиксируйте бёдра. Скручивайтесь, сближая рёбра и таз, а не просто наклоняясь корпусом.',
+    s: S.line(64, 2, 64, 94, 3) + S.line(56, 94, 76, 94, 3),
+    o: { h: [48, 68], kn: [48, 88], foot: [26, 90], fa: 162, cb: [64, 3], eq: 'h', ek: 'd', hl: ['abs'] },
+    p: [{ t: 5, hr: [4, -5] }, { t: 70, hr: [3, 6] }] },
+  { id: 'mountain', g: 'abs', n: 'Скалолаз', q: 'body', lv: 2, sec: 'Плечи, сгибатели бедра',
+    tip: 'Упор лёжа, корпус прямой. Поочерёдно подтягивайте колени к груди в быстром, но контролируемом темпе.',
+    o: { h: [48, 72], t: 80, hand: [74, 91], ek: 'b', kk: 'u', kk2: 'u', hl: ['abs'] },
+    p: [{ foot: [62, 84], foot2: [13, 91] }, { foot: [13, 91], foot2: [62, 84] }] },
+
+  /* ===== ЯГОДИЦЫ ===== */
+  { id: 'hip-thrust', g: 'glutes', n: 'Ягодичный мостик со штангой', q: 'barbell', lv: 2, sec: 'Бицепс бедра',
+    tip: 'Лопатки опираются на скамью, стопы на ширине таза. Поднимайте таз до прямой линии и сильно сжимайте ягодицы вверху.',
+    s: S.bench(12, 46, 86), o: { foot: [72, 91], kk: 'f', eq: 'bb', ek: 'd', hl: ['glute'] },
+    p: [{ h: [58, 86], t: -80, hand: [58, 80] }, { h: [58, 70], t: -120, hand: [58, 64] }] },
+  { id: 'cable-kickback', g: 'glutes', n: 'Отведение ноги назад на блоке', q: 'cable', lv: 1, sec: 'Бицепс бедра',
+    tip: 'Корпус слегка наклонён, держитесь за опору. Отводите ногу назад без прогиба в пояснице и сжимайте ягодицу.',
+    s: S.line(84, 2, 84, 94, 3) + S.line(76, 94, 94, 94, 3),
+    o: { h: [50, 56], t: 15, hand: [64, 50], ek: 'd', foot2: [50, 91], kk: 'f', kk2: 'f', cb: [84, 88], cbf: 1, hl: ['glute'] },
+    p: [{ foot: [58, 89] }, { foot: [24, 76] }] },
+  { id: 'donkey', g: 'glutes', n: 'Махи ногой назад на четвереньках', q: 'body', lv: 1, sec: 'Бицепс бедра',
+    tip: 'Колени под бёдрами, руки под плечами. Поднимайте согнутую или прямую ногу до линии корпуса, не прогибаясь.',
+    o: { h: [44, 68], t: 84, hand: [70, 90], ek: 'b', kn2: [44, 88], foot2: [27, 90], kk2: 'f', kk: 'f', hl: ['glute'] },
+    p: [{ foot: [34, 84] }, { foot: [9, 62] }] },
+  { id: 'rev-lunge', g: 'glutes', n: 'Выпады назад с гантелями', q: 'dumbbell', lv: 2, sec: 'Квадрицепс',
+    tip: 'Шагайте назад, переднее колено не уходит далеко за носок. Вставайте, отталкиваясь пяткой передней ноги.',
+    o: { eq: 'db', kk: 'f', hl: ['glute', 'thigh'] },
+    p: [{ h: [50, 52], t: 8, foot: [48, 91], foot2: [44, 91] }, { h: [48, 66], t: 12, foot: [60, 91], foot2: [24, 88], kk2: 'd' }] },
+  { id: 'step-up', g: 'glutes', n: 'Шаги на платформу', q: 'dumbbell', lv: 1, sec: 'Квадрицепс',
+    tip: 'Ставьте стопу целиком на платформу и вставайте за счёт опорной ноги, не отталкиваясь нижней.',
+    s: S.rect(42, 72, 52, 22), o: { eq: 'db', kk: 'f', kk2: 'f', hl: ['glute', 'thigh'] },
+    p: [{ h: [52, 50], foot: [60, 69], foot2: [40, 91] }, { h: [60, 30], foot: [60, 69], foot2: [68, 52] }] },
+
+  /* ===== КВАДРИЦЕПС ===== */
+  { id: 'squat', g: 'quads', n: 'Приседания со штангой', q: 'barbell', lv: 2, sec: 'Ягодицы, бицепс бедра, кор',
+    tip: 'Гриф на трапециях, колени идут по линии носков. Садитесь, отводя таз назад, до параллели бёдер с полом и ниже.',
+    o: { eq: 'bb', eqs: [-3, -2], hr: [6, -1], ek: 'd', kk: 'f', hl: ['thigh'] },
+    p: [{ h: [50, 52] }, { h: [34, 68], t: 40, foot: [48, 91], foot2: [44, 91] }] },
+  { id: 'leg-press', g: 'quads', n: 'Жим ногами', q: 'machine', lv: 1, sec: 'Ягодицы',
+    tip: 'Стопы на ширине плеч, поясница прижата к спинке. Опускайте платформу до угла в коленях около 90° и не выпрямляйте колени до конца.',
+    s: S.line(34, 79, 12, 63, 6) + S.line(32, 84, 90, 36, 2),
+    o: { h: [38, 74], t: -55, hr: [12, 10], ek: 'd', kk: 'u', hl: ['thigh'] },
+    p: [{ foot: [58, 58], sc: S.line(67, 66, 53, 48, 4) }, { foot: [70, 45], sc: S.line(77, 53, 61, 35, 4) }] },
+  { id: 'lunge', g: 'quads', n: 'Выпады вперёд с гантелями', q: 'dumbbell', lv: 2, sec: 'Ягодицы',
+    tip: 'Шаг вперёд, корпус прямой. Опускайтесь, пока заднее колено почти не коснётся пола, затем отталкивайтесь пяткой.',
+    o: { eq: 'db', kk: 'f', hl: ['thigh'] },
+    p: [{ h: [50, 52], foot: [60, 91], foot2: [40, 91] }, { h: [46, 67], foot: [62, 91], foot2: [26, 89], kk2: 'd' }] },
+  { id: 'leg-ext', g: 'quads', n: 'Разгибание ног в тренажёре', q: 'machine', lv: 1, sec: '',
+    tip: 'Спина прижата к спинке, валик на голенях. Полностью разгибайте колени и медленно опускайте вес.',
+    s: SEATED + S.line(30, 52, 32, 76, 6),
+    o: { h: [40, 70], t: -6, hand: [46, 64], ek: 'd', kn: [60, 72], ra: [0, 0], hl: ['thigh'] },
+    p: [{ foot: [60, 95] }, { foot: [92, 72] }] },
+  { id: 'bulgarian', g: 'quads', n: 'Болгарские сплит-приседания', q: 'dumbbell', lv: 2, sec: 'Ягодицы',
+    tip: 'Задняя нога лежит на скамье. Опускайтесь вертикально вниз, пятка передней ноги прижата к полу.',
+    s: S.bench(2, 30, 72), o: { eq: 'db', foot: [62, 91], kk: 'f', foot2: [26, 69], kk2: 'd', hl: ['thigh', 'glute'] },
+    p: [{ h: [50, 50] }, { h: [48, 64] }] },
+  { id: 'goblet', g: 'quads', n: 'Кубковый присед', q: 'dumbbell', lv: 1, sec: 'Ягодицы, кор',
+    tip: 'Гантель удерживайте у груди, локти направляйте внутрь коленей. Приседайте глубоко с прямой спиной.',
+    o: { eq: 'db', ek: 'd', kk: 'f', hl: ['thigh'] },
+    p: [{ hr: [6, 8] }, { h: [36, 68], t: 30, hr: [7, 8], foot: [50, 91], foot2: [46, 91] }] },
+
+  /* ===== БИЦЕПС БЕДРА ===== */
+  { id: 'rdl', g: 'hams', n: 'Румынская тяга', q: 'barbell', lv: 2, sec: 'Ягодицы, поясница',
+    tip: 'Колени чуть согнуты, гриф скользит вдоль ног. Отводите таз назад до растяжения бицепса бедра, спина прямая.',
+    o: { eq: 'bb', kk: 'f', foot: [48, 91], hl: ['thigh'] },
+    p: [{ hr: [3, 27] }, { h: [38, 52], t: 70, hr: [0, 26] }] },
+  { id: 'leg-curl', g: 'hams', n: 'Сгибание ног лёжа', q: 'machine', lv: 1, sec: 'Икры',
+    tip: 'Валик у ахиллов, таз прижат к скамье. Сгибайте колени до упора и плавно возвращайте.',
+    s: S.bench(30, 90, 62),
+    o: { h: [46, 56], t: 90, hand: [78, 66], ek: 'd', kn: [27, 58], ra: [0, 0], hl: ['thigh'] },
+    p: [{ foot: [4, 60] }, { foot: [27, 20] }] },
+  { id: 'good-morning', g: 'hams', n: 'Наклоны со штангой («доброе утро»)', q: 'barbell', lv: 3, sec: 'Ягодицы, поясница',
+    tip: 'Гриф на трапециях, колени мягкие. Наклоняйтесь, отводя таз назад, спина ровная. Начинайте с лёгкого веса.',
+    o: { eq: 'bb', eqs: [-3, -2], hr: [6, -1], ek: 'd', kk: 'f', foot: [46, 91], hl: ['thigh'] },
+    p: [{}, { h: [40, 54], t: 80 }] },
+  { id: 'sl-rdl', g: 'hams', n: 'Румынская тяга на одной ноге', q: 'dumbbell', lv: 2, sec: 'Ягодицы, кор',
+    tip: 'Опорная нога слегка согнута, свободная вытягивается назад как продолжение корпуса. Таз смотрит вниз.',
+    o: { eq: 'db', kk: 'f', hl: ['thigh'] },
+    p: [{ foot: [48, 91], foot2: [44, 91] }, { h: [50, 54], t: 85, hr: [1, 26], foot: [52, 91], foot2: [14, 52], kk2: 'u' }] },
+
+  /* ===== ИКРЫ ===== */
+  { id: 'standing-calf', g: 'calves', n: 'Подъём на носки стоя', q: 'dumbbell', lv: 1, sec: 'Камбаловидная мышца',
+    tip: 'Носок на ступеньке, пятка свободна. Поднимайтесь максимально высоко, внизу полностью растягивайте мышцу.',
+    s: S.rect(44, 90, 22, 4), o: { eq: 'db', kk: 'f', hl: ['shin'] },
+    p: [{ h: [53, 50], foot: [53.2, 88.2], fa: 15 }, { h: [56, 46], foot: [56, 84.3], fa: 55 }] },
+  { id: 'seated-calf', g: 'calves', n: 'Подъём на носки сидя', q: 'machine', lv: 1, sec: 'Камбаловидная мышца',
+    tip: 'Колени под валиком, подъём на носки с паузой вверху. Амплитуда максимальная.',
+    s: S.rect(16, 71, 24, 5) + S.line(22, 76, 22, 94) + S.line(36, 76, 36, 94) + S.rect(44, 87, 24, 7),
+    o: { t: 0, hand: [50, 56], ek: 'd', hl: ['shin'] },
+    p: [{ h: [30, 66], kn: [50, 66], foot: [50, 95], fa: 15, sc: S.rect(44, 58, 14, 5) }, { h: [30, 62], kn: [50, 62], foot: [51, 95], fa: 55, sc: S.rect(44, 54, 14, 5) }] },
+  { id: 'press-calf', g: 'calves', n: 'Подъём на носки в тренажёре для жима', q: 'machine', lv: 1, sec: '',
+    tip: 'Ноги почти прямые, на платформе только передняя часть стопы. Выжимайте носками и плавно возвращайтесь.',
+    s: S.line(34, 79, 12, 63, 6) + S.line(32, 84, 90, 36, 2),
+    o: { h: [38, 74], t: -55, hr: [12, 10], ek: 'd', kk: 'u', hl: ['shin'] },
+    p: [{ foot: [68, 44], fa: -5, sc: S.line(75, 53, 59, 35, 4) }, { foot: [70, 46], fa: 55, sc: S.line(77, 54, 61, 36, 4) }] },
+  { id: 'sl-calf', g: 'calves', n: 'Подъём на носок на одной ноге', q: 'dumbbell', lv: 2, sec: 'Камбаловидная мышца',
+    tip: 'Держитесь свободной рукой за опору. Работайте одной ногой, пауза вверху, медленный спуск.',
+    s: S.rect(44, 90, 22, 4) + S.line(76, 10, 76, 94, 3), o: { eq: 'db', kk: 'f', kk2: 'f', hand2: [74, 40], ek2: 'b', hl: ['shin'] },
+    p: [{ h: [53, 50], foot: [53.2, 88.2], fa: 15, foot2: [38, 78] }, { h: [56, 46], foot: [56, 84.3], fa: 55, foot2: [41, 73] }] }
+];
+
+/* ---------- Приложение ---------- */
+(() => {
+  const $ = s => document.querySelector(s);
+  const byId = Object.fromEntries(EXERCISES.map(e => [e.id, e]));
+  const gName = id => (GROUPS.find(g => g.id === id) || {}).n || '';
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const norm = s => String(s).toLowerCase().replace(/ё/g, 'е');
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return f[a > 10 && a < 20 ? 2 : b > 1 && b < 5 ? 1 : b === 1 ? 0 : 2]; };
+  const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
+
+  /* ----- состояние ----- */
+  const state = { name: 'Тренировка', items: [], editing: null, saved: [], updated: 0 };
+  const ui = { g: 'chest', q: '', eq: 'all', sheet: false, mapOn: false, sure: null, copy: false };
+  const figCache = {};
+  const fig = (e, mini) => { const k = e.id + (mini ? 'm' : ''); return figCache[k] || (figCache[k] = FIG.figure(e, mini)); };
+
+  /* ----- хранение: браузер + (если доступно) личная область в аккаунте ----- */
+  const LS = 'workout-planner:v1';
+  const cloud = { ref: null, busy: false, dirty: false, timer: null };
+  const snapshot = () => JSON.parse(JSON.stringify({ v: 1, updated: state.updated, name: state.name, items: state.items, editing: state.editing, saved: state.saved }));
+  const hasContent = () => state.items.length > 0 || state.saved.length > 0;
+  function adopt(d) {
+    if (!d || typeof d !== 'object') return;
+    state.name = typeof d.name === 'string' ? d.name : 'Тренировка';
+    state.items = Array.isArray(d.items) ? d.items.filter(i => i && byId[i.id] && Array.isArray(i.sets)).map(i => ({ u: i.u || uid(), id: i.id, sets: i.sets.map(s => ({ r: s.r ?? '', w: s.w ?? '', d: !!s.d })) })) : [];
+    state.saved = Array.isArray(d.saved) ? d.saved.filter(s => s && s.sid && Array.isArray(s.items)) : [];
+    state.editing = d.editing && state.saved.some(s => s.sid === d.editing) ? d.editing : null;
+    state.updated = d.updated || 0;
+  }
+  const syncInfo = { cloud: false, gd: false, gdNeed: false };
+  function setSync() {
+    const el = $('#sync');
+    const kind = syncInfo.gd ? 'cloud' : syncInfo.cloud ? 'cloud' : 'local';
+    el.dataset.s = kind;
+    $('#syncText').textContent = syncInfo.gd ? (syncInfo.gdNeed ? 'Google Drive: нужно войти снова' : 'Синхронизация с Google Drive') : syncInfo.cloud ? 'Сохраняется в вашем аккаунте' : 'Сохраняется в этом браузере';
+  }
+  let extraPush = null;
+  function persist() {
+    state.updated = Date.now();
+    try { localStorage.setItem(LS, JSON.stringify(snapshot())); } catch (e) { /* нет доступа к хранилищу */ }
+    if (cloud.ref) { clearTimeout(cloud.timer); cloud.timer = setTimeout(push, 900); }
+    if (extraPush) extraPush();
+  }
+  function push() {
+    if (!cloud.ref) return;
+    if (cloud.busy) { cloud.dirty = true; return; }
+    cloud.busy = true;
+    cloud.ref.set(snapshot()).then(() => { syncInfo.cloud = true; setSync(); }, () => { syncInfo.cloud = false; setSync(); }).then(() => {
+      cloud.busy = false;
+      if (cloud.dirty) { cloud.dirty = false; push(); }
+    });
+  }
+  async function initCloud() {
+    try {
+      if (!window.claude || !window.claude.use) return;
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if (!db || !user) return;
+      const id = await user.id();
+      if (!id) return;
+      const ref = db.collection('data/users/' + id).doc('planner');
+      const snap = await ref.get();
+      cloud.ref = ref;
+      const remote = snap.exists ? snap.data() : null;
+      if (remote && (remote.updated || 0) > (state.updated || 0)) { adopt(remote); renderAll(); try { localStorage.setItem(LS, JSON.stringify(snapshot())); } catch (e) {} }
+      else if (hasContent()) push();
+      syncInfo.cloud = true; setSync();
+    } catch (e) { syncInfo.cloud = false; setSync(); }
+  }
+
+  /* ----- уведомление ----- */
+  let toastT;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+  /* ----- карта тела ----- */
+  const FRONT = [
+    ['shoulders', 'e', 34, 51, 11, 10], ['shoulders', 'e', 86, 51, 11, 10],
+    ['chest', 'r', 40, 44, 19, 25, 8], ['chest', 'r', 61, 44, 19, 25, 8],
+    ['abs', 'r', 47, 72, 26, 44, 7],
+    ['biceps', 'e', 25, 82, 7.5, 18], ['biceps', 'e', 95, 82, 7.5, 18],
+    ['forearms', 'e', 20, 118, 6.5, 17], ['forearms', 'e', 100, 118, 6.5, 17],
+    ['quads', 'e', 48, 164, 12, 31], ['quads', 'e', 72, 164, 12, 31],
+    ['calves', 'e', 46, 216, 8, 24], ['calves', 'e', 74, 216, 8, 24]
+  ];
+  const BACK = [
+    ['back', 'p', 'M46 41H74L89 53L85 99L75 119H45L35 99L31 53Z'],
+    ['shoulders', 'e', 34, 51, 11, 10], ['shoulders', 'e', 86, 51, 11, 10],
+    ['triceps', 'e', 25, 82, 7.5, 18], ['triceps', 'e', 95, 82, 7.5, 18],
+    ['forearms', 'e', 20, 118, 6.5, 17], ['forearms', 'e', 100, 118, 6.5, 17],
+    ['glutes', 'e', 50, 135, 12, 13], ['glutes', 'e', 70, 135, 12, 13],
+    ['hams', 'e', 48, 176, 11.5, 27], ['hams', 'e', 72, 176, 11.5, 27],
+    ['calves', 'e', 46, 218, 8, 24], ['calves', 'e', 74, 218, 8, 24]
+  ];
+  function shapeSvg(s) {
+    if (s[1] === 'e') return `<ellipse class="z" cx="${s[2]}" cy="${s[3]}" rx="${s[4]}" ry="${s[5]}"/>`;
+    if (s[1] === 'r') return `<rect class="z" x="${s[2]}" y="${s[3]}" width="${s[4]}" height="${s[5]}" rx="${s[6]}"/>`;
+    return `<path class="z" d="${s[2]}"/>`;
+  }
+  function bodySvg(shapes, label) {
+    const gs = {};
+    shapes.forEach(s => (gs[s[0]] = gs[s[0]] || []).push(shapeSvg(s)));
+    const zones = Object.keys(gs).map(id => `<g class="zone" data-g="${id}" role="button" tabindex="0" aria-label="${gName(id)}"><title>${gName(id)}</title>${gs[id].join('')}</g>`).join('');
+    const base = `<circle class="bm-base" cx="60" cy="19" r="12"/><rect class="bm-base" x="54" y="29" width="12" height="13" rx="4"/><rect class="bm-base" x="45" y="118" width="30" height="16" rx="7"/><ellipse class="bm-base" cx="18" cy="142" rx="5" ry="6.5"/><ellipse class="bm-base" cx="102" cy="142" rx="5" ry="6.5"/><ellipse class="bm-base" cx="44" cy="245" rx="10" ry="4"/><ellipse class="bm-base" cx="76" cy="245" rx="10" ry="4"/>`;
+    return `<figure><svg viewBox="0 0 120 252" aria-label="${label}">${base}${zones}</svg><figcaption>${label}</figcaption></figure>`;
+  }
+  function renderMap() {
+    $('#map').innerHTML = `<div class="map-in">${bodySvg(FRONT, 'Спереди')}${bodySvg(BACK, 'Сзади')}</div><p class="map-hint">Нажмите на мышцу</p>`;
+  }
+  function markMap() {
+    document.querySelectorAll('.zone').forEach(z => z.classList.toggle('on', !ui.q && z.dataset.g === ui.g));
+  }
+
+  /* ----- группы и фильтры ----- */
+  function renderGroups() {
+    const all = [{ id: 'all', n: 'Все упражнения' }, ...GROUPS];
+    $('#groups').innerHTML = all.map(g => {
+      const c = g.id === 'all' ? EXERCISES.length : EXERCISES.filter(e => e.g === g.id).length;
+      return `<button class="gbtn" type="button" data-g="${g.id}" aria-pressed="${!ui.q && ui.g === g.id}">${g.n}<small>${c}</small></button>`;
+    }).join('');
+  }
+  function renderChips() {
+    const all = [['all', 'Любое оборудование'], ...Object.entries(EQUIP)];
+    $('#eqChips').innerHTML = all.map(([id, n]) => `<button class="chip" type="button" data-eq="${id}" aria-pressed="${ui.eq === id}">${n}</button>`).join('');
+  }
+  function filtered() {
+    const q = norm(ui.q.trim());
+    let list = EXERCISES;
+    if (q) list = list.filter(e => norm(`${e.n} ${e.sec || ''} ${EQUIP[e.q]} ${gName(e.g)}`).includes(q));
+    else if (ui.g !== 'all') list = list.filter(e => e.g === ui.g);
+    if (ui.eq !== 'all') list = list.filter(e => e.q === ui.eq);
+    return list;
+  }
+  const inPlan = id => state.items.some(i => i.id === id);
+  function cardHtml(e) {
+    const on = inPlan(e.id);
+    const dots = '●'.repeat(e.lv) + `<span>${'●'.repeat(3 - e.lv)}</span>`;
+    return `<article class="card${on ? ' in' : ''}" data-id="${e.id}">
+      <div class="fig">${fig(e)}</div>
+      <div class="cbody">
+        <h3>${esc(e.n)}</h3>
+        <div class="meta"><span class="tag">${EQUIP[e.q]}</span><span class="dots" role="img" aria-label="Сложность: ${e.lv} из 3">${dots}</span>${ui.q || ui.g === 'all' ? `<span>${gName(e.g)}</span>` : ''}</div>
+        ${e.sec ? `<p class="sec">Также работают: ${esc(e.sec)}</p>` : ''}
+        <details><summary>Как выполнять</summary><p>${esc(e.tip)}</p></details>
+        <button class="add" type="button" data-add="${e.id}" aria-pressed="${on}">${on ? '✓ В тренировке' : '+ В тренировку'}</button>
+      </div></article>`;
+  }
+  function renderLib() {
+    const list = filtered();
+    const q = ui.q.trim();
+    $('#libTitle').textContent = q ? `Поиск: «${q}»` : ui.g === 'all' ? 'Все упражнения' : gName(ui.g);
+    $('#libCount').textContent = `${list.length} ${plural(list.length, ['упражнение', 'упражнения', 'упражнений'])}`;
+    $('#grid').innerHTML = list.length ? list.map(cardHtml).join('') : '<p class="empty">Ничего не найдено. Измените запрос или выберите «Любое оборудование».</p>';
+    markMap();
+  }
+  function refreshCardStates() {
+    document.querySelectorAll('.card').forEach(c => {
+      const on = inPlan(c.dataset.id), b = c.querySelector('.add');
+      c.classList.toggle('in', on); b.setAttribute('aria-pressed', on); b.textContent = on ? '✓ В тренировке' : '+ В тренировку';
+    });
+  }
+
+  /* ----- тренировка ----- */
+  const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>';
+  function setRow(it, s, i) {
+    return `<div class="set${s.d ? ' done' : ''}" data-u="${it.u}" data-i="${i}">
+      <b>${i + 1}</b>
+      <input class="num" id="r-${it.u}-${i}" data-f="r" type="number" inputmode="numeric" min="0" step="1" value="${esc(s.r)}" aria-label="Повторы, подход ${i + 1}" placeholder="0">
+      <input class="num" id="w-${it.u}-${i}" data-f="w" type="number" inputmode="decimal" min="0" step="0.5" value="${esc(s.w)}" aria-label="Вес в килограммах, подход ${i + 1}" placeholder="0">
+      <button class="chk" type="button" data-act="done" aria-pressed="${s.d}" aria-label="Подход ${i + 1} выполнен">${CHECK}</button>
+      <button class="rm" type="button" data-act="rmset" aria-label="Убрать подход ${i + 1}">×</button>
+    </div>`;
+  }
+  function itemHtml(it, idx, total) {
+    const e = byId[it.id];
+    return `<li class="pi" data-u="${it.u}">
+      <div class="pi-top">
+        <div class="thumb">${fig(e, true)}</div>
+        <div class="pi-name"><b>${esc(e.n)}</b><span>${gName(e.g)} · ${EQUIP[e.q]}</span></div>
+        <div class="ibtns">
+          <button class="ib" type="button" data-act="up" aria-label="Выше" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button class="ib" type="button" data-act="down" aria-label="Ниже" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+          <button class="ib" type="button" data-act="rm" aria-label="Убрать упражнение">✕</button>
+        </div>
+      </div>
+      <div class="sets">
+        <div class="set-h"><span>№</span><span>Повт.</span><span>Вес, кг</span><span></span><span></span></div>
+        ${it.sets.map((s, i) => setRow(it, s, i)).join('')}
+        <button class="addset" type="button" data-act="addset">+ Подход</button>
+      </div></li>`;
+  }
+  function stats() {
+    const n = state.items.length;
+    const sets = state.items.reduce((a, i) => a + i.sets.length, 0);
+    const vol = state.items.reduce((a, i) => a + i.sets.reduce((b, s) => b + num(s.r) * num(s.w), 0), 0);
+    const parts = [`${n} ${plural(n, ['упражнение', 'упражнения', 'упражнений'])}`, `${sets} ${plural(sets, ['подход', 'подхода', 'подходов'])}`];
+    if (vol > 0) parts.push(`объём ${Math.round(vol).toLocaleString('ru-RU')} кг`);
+    $('#stats').textContent = n ? parts.join(' · ') : '';
+    $('#fabCount').textContent = n;
+    $('#clearBtn').disabled = !n && !state.editing;
+    $('#copyBtn').disabled = !n;
+    $('#saveBtn').disabled = !n;
+  }
+  function renderPlan() {
+    const total = state.items.length;
+    $('#items').innerHTML = state.items.map((it, i) => itemHtml(it, i, total)).join('');
+    $('#planEmpty').innerHTML = total ? '' : `<div class="plan-empty"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="var(--line2)" stroke-width="2"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="var(--line2)" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="var(--line2)"/></svg><br>Пока пусто. Выберите часть тела и добавьте упражнения кнопкой «В тренировку».</div>`;
+    const w = $('#wname'); if (document.activeElement !== w) w.value = state.name;
+    $('#saveBtn').textContent = state.editing ? 'Обновить сохранённую' : 'Сохранить';
+    stats();
+  }
+  function renderSaved() {
+    const list = [...state.saved].sort((a, b) => b.at - a.at);
+    if (!list.length) { $('#saved').innerHTML = '<p class="saved-empty">Здесь появятся тренировки, которые вы сохраните.</p>'; return; }
+    $('#saved').innerHTML = '<ul>' + list.map(s => {
+      const sets = s.items.reduce((a, i) => a + i.sets.length, 0);
+      const date = new Date(s.at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+      return `<li class="sv${state.editing === s.sid ? ' cur' : ''}" data-sid="${s.sid}">
+        <button class="sv-main" type="button" data-act="load"><b>${esc(s.name || 'Без названия')}</b><span>${s.items.length} ${plural(s.items.length, ['упражнение', 'упражнения', 'упражнений'])} · ${sets} ${plural(sets, ['подход', 'подхода', 'подходов'])} · ${date}</span></button>
+        <button class="sv-del${ui.sure === s.sid ? ' sure' : ''}" type="button" data-act="del">${ui.sure === s.sid ? 'Удалить?' : 'Удалить'}</button></li>`;
+    }).join('') + '</ul>';
+  }
+  function renderAll() { renderGroups(); renderChips(); renderLib(); renderPlan(); renderSaved(); }
+
+  /* ----- действия ----- */
+  function addExercise(id) {
+    const i = state.items.findIndex(x => x.id === id);
+    if (i >= 0) { state.items.splice(i, 1); toast('Убрано из тренировки'); }
+    else { state.items.push({ u: uid(), id, sets: [0, 1, 2].map(() => ({ r: 10, w: '', d: false })) }); toast('Добавлено: ' + byId[id].n); }
+    persist(); refreshCardStates(); renderPlan();
+  }
+  const findItem = u => state.items.find(i => i.u === u);
+  function plainItems() { return state.items.map(i => ({ u: uid(), id: i.id, sets: i.sets.map(s => ({ r: s.r, w: s.w, d: false })) })); }
+  function save() {
+    if (!state.items.length) return;
+    const name = (state.name || '').trim() || 'Тренировка';
+    state.name = name;
+    const rec = state.editing && state.saved.find(s => s.sid === state.editing);
+    if (rec) { rec.name = name; rec.items = plainItems(); rec.at = Date.now(); toast('Тренировка обновлена'); }
+    else { const sid = uid(); state.saved.push({ sid, name, items: plainItems(), at: Date.now() }); state.editing = sid; toast('Тренировка сохранена'); }
+    persist(); renderPlan(); renderSaved();
+  }
+  function load(sid) {
+    const rec = state.saved.find(s => s.sid === sid); if (!rec) return;
+    state.name = rec.name; state.editing = sid;
+    state.items = rec.items.map(i => ({ u: uid(), id: i.id, sets: i.sets.map(s => ({ r: s.r, w: s.w, d: false })) })).filter(i => byId[i.id]);
+    persist(); refreshCardStates(); renderPlan(); renderSaved(); toast('Открыта: ' + rec.name);
+  }
+  function planText() {
+    const lines = [state.name || 'Тренировка', ''];
+    state.items.forEach((it, i) => {
+      const e = byId[it.id];
+      const sets = it.sets.map(s => { const r = num(s.r), w = num(s.w); return w > 0 ? `${w} кг × ${r}` : `${r} повт.`; }).join(', ');
+      lines.push(`${i + 1}. ${e.n}: ${sets}`);
+    });
+    return lines.join('\n');
+  }
+  async function copyPlan() {
+    const text = planText(), box = $('#copyBox');
+    try { await navigator.clipboard.writeText(text); box.hidden = true; toast('Скопировано'); return; } catch (e) { /* ниже запасной вариант */ }
+    box.value = text; box.hidden = false; box.focus(); box.select(); toast('Выделите текст и скопируйте его');
+  }
+  function openSheet(v) {
+    ui.sheet = v; $('#plan').classList.toggle('open', v);
+    document.body.style.overflow = v ? 'hidden' : '';
+    if (v) $('#closePlan').focus(); else $('#fab').focus({ preventScroll: true });
+  }
+  function selectGroup(g) {
+    ui.g = g; ui.q = ''; $('#q').value = '';
+    renderGroups(); renderLib();
+    if (matchMedia('(max-width: 1099px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ----- события ----- */
+  document.addEventListener('click', ev => {
+    const t = ev.target;
+    let el;
+    if ((el = t.closest('.gbtn'))) return selectGroup(el.dataset.g);
+    if ((el = t.closest('.zone'))) return selectGroup(el.dataset.g);
+    if ((el = t.closest('.chip'))) { ui.eq = el.dataset.eq; renderChips(); return renderLib(); }
+    if ((el = t.closest('[data-add]'))) return addExercise(el.dataset.add);
+    if (t.closest('#mapToggle')) { ui.mapOn = !ui.mapOn; $('#side').classList.toggle('map-on', ui.mapOn); const b = $('#mapToggle'); b.setAttribute('aria-expanded', ui.mapOn); b.textContent = ui.mapOn ? 'Скрыть карту тела' : 'Показать карту тела'; return; }
+    if (t.closest('#fab')) return openSheet(true);
+    if (t.closest('#closePlan')) return openSheet(false);
+    if (t.closest('#saveBtn')) return save();
+    if (t.closest('#copyBtn')) return copyPlan();
+    if (t.closest('#clearBtn')) {
+      const b = $('#clearBtn');
+      if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Точно очистить?'; b.classList.add('warn'); setTimeout(() => { delete b.dataset.sure; b.textContent = 'Очистить'; b.classList.remove('warn'); }, 3000); return; }
+      delete b.dataset.sure; b.textContent = 'Очистить'; b.classList.remove('warn');
+      state.items = []; state.editing = null; state.name = 'Тренировка'; $('#copyBox').hidden = true;
+      persist(); refreshCardStates(); renderPlan(); renderSaved(); return toast('Тренировка очищена');
+    }
+    const act = t.closest('[data-act]'); if (!act) return;
+    const a = act.dataset.act;
+    const sv = act.closest('.sv');
+    if (sv) {
+      const sid = sv.dataset.sid;
+      if (a === 'load') return load(sid);
+      if (a === 'del') {
+        if (ui.sure !== sid) { ui.sure = sid; renderSaved(); setTimeout(() => { if (ui.sure === sid) { ui.sure = null; renderSaved(); } }, 3000); return; }
+        ui.sure = null; state.saved = state.saved.filter(s => s.sid !== sid); if (state.editing === sid) state.editing = null;
+        persist(); renderPlan(); renderSaved(); return toast('Тренировка удалена');
+      }
+    }
+    const row = act.closest('.pi'); if (!row) return;
+    const it = findItem(row.dataset.u); if (!it) return;
+    const idx = state.items.indexOf(it);
+    if (a === 'rm') { state.items.splice(idx, 1); persist(); refreshCardStates(); return renderPlan(); }
+    if (a === 'up' && idx > 0) { [state.items[idx - 1], state.items[idx]] = [state.items[idx], state.items[idx - 1]]; persist(); return renderPlan(); }
+    if (a === 'down' && idx < state.items.length - 1) { [state.items[idx + 1], state.items[idx]] = [state.items[idx], state.items[idx + 1]]; persist(); return renderPlan(); }
+    if (a === 'addset') { const last = it.sets[it.sets.length - 1] || { r: 10, w: '' }; it.sets.push({ r: last.r, w: last.w, d: false }); persist(); return renderPlan(); }
+    const si = +act.closest('.set')?.dataset.i;
+    if (a === 'rmset') { it.sets.splice(si, 1); if (!it.sets.length) state.items.splice(idx, 1); persist(); refreshCardStates(); return renderPlan(); }
+    if (a === 'done') { it.sets[si].d = !it.sets[si].d; persist(); act.setAttribute('aria-pressed', it.sets[si].d); act.closest('.set').classList.toggle('done', it.sets[si].d); }
+  });
+  document.addEventListener('input', ev => {
+    const t = ev.target;
+    if (t.id === 'q') { ui.q = t.value; renderGroups(); return renderLib(); }
+    if (t.id === 'wname') { state.name = t.value; persist(); return; }
+    if (t.matches('.num')) {
+      const row = t.closest('.set'), it = findItem(row.dataset.u); if (!it) return;
+      it.sets[+row.dataset.i][t.dataset.f] = t.value; persist(); stats();
+    }
+  });
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && ui.sheet) return openSheet(false);
+    const z = ev.target.closest && ev.target.closest('.zone');
+    if (z && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); selectGroup(z.dataset.g); }
+    if (ev.key === 'Enter' && ev.target.id === 'wname') ev.target.blur();
+  });
+  matchMedia('(min-width: 1100px)').addEventListener('change', e => { if (e.matches && ui.sheet) openSheet(false); });
+
+    /* ----- Google Drive: данные лежат в скрытой папке приложения на вашем Диске ----- */
+  // Вставьте сюда Client ID из Google Cloud (или введите его на странице в блоке «Синхронизация»).
+  const GOOGLE_CLIENT_ID = '';
+  const GD_KEY = 'workout-planner:gd';
+  const GD = { on: false, need: false, token: null, exp: 0, fileId: null, client: null, busy: false, dirty: false, timer: null, authing: false, ok: null };
+  const gdCfg = () => { try { return JSON.parse(localStorage.getItem(GD_KEY)) || {}; } catch (e) { return {}; } };
+  const gdSet = o => { try { localStorage.setItem(GD_KEY, JSON.stringify(Object.assign(gdCfg(), o))); } catch (e) { /* нет хранилища */ } };
+  const gdCid = () => (GOOGLE_CLIENT_ID || gdCfg().cid || '').trim();
+  const gdHosted = () => /^https?:$/.test(location.protocol);
+
+  function loadGis() {
+    return new Promise((res, rej) => {
+      if (window.google && google.accounts && google.accounts.oauth2) return res();
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+      s.onload = () => res(); s.onerror = () => rej(new Error('gis'));
+      document.head.appendChild(s);
+    });
+  }
+  function gdToken() {
+    if (GD.token && Date.now() < GD.exp - 60000) return Promise.resolve(GD.token);
+    return loadGis().then(() => new Promise((res, rej) => {
+      if (!GD.client) GD.client = google.accounts.oauth2.initTokenClient({ client_id: gdCid(), scope: 'https://www.googleapis.com/auth/drive.appdata', callback: () => {} });
+      GD.client.callback = r => {
+        if (r && r.access_token) { GD.token = r.access_token; GD.exp = Date.now() + (r.expires_in || 3600) * 1000; res(GD.token); }
+        else rej(new Error((r && r.error) || 'auth'));
+      };
+      GD.client.error_callback = e => rej(new Error((e && e.type) || 'auth'));
+      GD.client.requestAccessToken({ prompt: '' });
+    }));
+  }
+  async function gdFetch(url, opt, retry) {
+    const t = await gdToken();
+    const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + t }, opt && opt.headers) }));
+    if (r.status === 401 && !retry) { GD.token = null; return gdFetch(url, opt, true); }
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r;
+  }
+  async function gdFind() {
+    if (GD.fileId) return GD.fileId;
+    const q = encodeURIComponent("name='planner.json'");
+    const j = await (await gdFetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id)&pageSize=1`)).json();
+    GD.fileId = j.files && j.files[0] ? j.files[0].id : null;
+    return GD.fileId;
+  }
+  async function gdRead() {
+    const id = await gdFind();
+    if (!id) return null;
+    return (await gdFetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).json();
+  }
+  async function gdWrite(data) {
+    const body = JSON.stringify(data);
+    const id = await gdFind();
+    if (id) {
+      await gdFetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
+      return;
+    }
+    const b = 'pl' + uid();
+    const meta = JSON.stringify({ name: 'planner.json', parents: ['appDataFolder'] });
+    const mp = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`;
+    const r = await gdFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: mp });
+    GD.fileId = (await r.json()).id;
+  }
+
+  function gdState(ok) {
+    GD.ok = ok;
+    GD.need = ok === false;
+    syncInfo.gd = GD.on; syncInfo.gdNeed = GD.on && GD.need;
+    setSync(); renderGd();
+  }
+  function gdSchedule() { if (GD.on && !GD.need) { clearTimeout(GD.timer); GD.timer = setTimeout(gdPush, 1200); } }
+  async function gdPush() {
+    if (!GD.on) return;
+    if (GD.busy) { GD.dirty = true; return; }
+    GD.busy = true;
+    try { await gdWrite(snapshot()); gdState(true); } catch (e) { gdState(false); }
+    GD.busy = false;
+    if (GD.dirty) { GD.dirty = false; gdPush(); }
+  }
+  async function gdPull() {
+    try {
+      const r = await gdRead();
+      const rt = r && r.updated || 0;
+      if (r && rt > (state.updated || 0)) {
+        adopt(r); try { localStorage.setItem(LS, JSON.stringify(snapshot())); } catch (e) { /* пусто */ }
+        renderAll(); toast('Данные обновлены из Google Drive');
+      } else if (rt < (state.updated || 0) && hasContent()) { await gdWrite(snapshot()); }
+      gdState(true);
+    } catch (e) { gdState(false); }
+  }
+  async function gdConnect() {
+    if (!gdCid()) { toast('Сначала вставьте Client ID'); return; }
+    GD.authing = true;
+    try {
+      await gdToken();
+      GD.on = true; gdSet({ linked: 1 });
+      await gdPull();
+    } catch (e) {
+      toast('Не удалось войти в Google. Проверьте Client ID и адрес сайта в настройках.');
+      if (!GD.on) { syncInfo.gd = false; setSync(); }
+    }
+    GD.authing = false; renderGd();
+  }
+  function gdDisconnect() {
+    GD.on = false; GD.need = false; GD.token = null; clearTimeout(GD.timer); gdSet({ linked: 0 });
+    syncInfo.gd = false; syncInfo.gdNeed = false; setSync(); renderGd(); toast('Синхронизация выключена');
+  }
+  function renderGd() {
+    const box = $('#gd'); if (!box) return;
+    box.hidden = false;
+    const cid = gdCid();
+    let text, btn = '';
+    if (!gdHosted()) text = 'Синхронизация работает, когда сайт открыт по ссылке https://, а не как файл с компьютера.';
+    else if (GD.on && GD.need) { text = 'Нужно снова войти в Google, чтобы продолжить синхронизацию.'; btn = '<button class="btn pri" type="button" data-gd="connect">Войти снова</button> <button class="btn soft" type="button" data-gd="off">Выключить</button>'; }
+    else if (GD.on) { text = 'Тренировки автоматически сохраняются на вашем Google Диске и подтягиваются на других устройствах.'; btn = '<button class="btn soft" type="button" data-gd="off">Выключить</button>'; }
+    else if (cid) { text = 'Подключите Google Диск, чтобы тренировки были одинаковыми на телефоне и компьютере.'; btn = '<button class="btn pri" type="button" data-gd="connect">Подключить Google Диск</button>'; }
+    else text = 'Чтобы включить синхронизацию, один раз вставьте Client ID из Google Cloud.';
+    $('#gdText').textContent = text;
+    $('#gdBtns').innerHTML = btn;
+    const inp = $('#gdCid');
+    if (document.activeElement !== inp) inp.value = GOOGLE_CLIENT_ID ? '' : (gdCfg().cid || '');
+    $('#gdCidRow').hidden = !!GOOGLE_CLIENT_ID || !gdHosted();
+    $('#gdHelp').hidden = !gdHosted();
+  }
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-gd]'); if (!b) return;
+    if (b.dataset.gd === 'connect') gdConnect(); else if (b.dataset.gd === 'off') gdDisconnect();
+    else if (b.dataset.gd === 'savecid') { const v = $('#gdCid').value.trim(); gdSet({ cid: v }); GD.client = null; toast(v ? 'Client ID сохранён' : 'Client ID удалён'); renderGd(); }
+  });
+  // после сбоя входа вернуть синхронизацию при следующем касании экрана (так браузер разрешает окно входа)
+  document.addEventListener('pointerdown', () => {
+    if (GD.on && GD.need && !GD.authing && !GD.busy) { GD.authing = true; gdToken().then(() => gdPull(), () => {}).then(() => { GD.authing = false; }); }
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && GD.on && !GD.need && !GD.busy) gdPull(); });
+  extraPush = gdSchedule;
+  async function gdInit() {
+    renderGd();
+    if (!gdHosted() || !gdCid() || !gdCfg().linked) return;
+    GD.on = true; syncInfo.gd = true; setSync();
+    GD.authing = true;
+    try { await gdToken(); await gdPull(); } catch (e) { gdState(false); }
+    GD.authing = false;
+  }
+
+
+  /* ----- запуск ----- */
+  try { const raw = localStorage.getItem(LS); if (raw) adopt(JSON.parse(raw)); } catch (e) { /* пусто */ }
+  renderMap();
+  renderAll();
+  setSync();
+  initCloud();
+  gdInit();
+})();
+
+</script>
+</body></html>
